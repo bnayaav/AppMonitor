@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/bg" android:padding="10dp" android:layoutDirection="rtl">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <TextView android:id="@+id/title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="הזמנות קומפון" android:textColor="#0F62FE" android:textSize="15sp" android:textStyle="bold" android:textDirection="rtl" />
+        <TextView android:id="@+id/refresh" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⟳" android:textSize="18sp" android:textColor="#6B7280" android:paddingStart="10dp" android:paddingEnd="4dp" />
+    </LinearLayout>
+    <TextView android:id="@+id/body" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:layout_marginTop="4dp" android:text="טוען…" android:textColor="#111827" android:textSize="13sp"
+        android:textDirection="rtl" android:gravity="top|start" android:lineSpacingExtra="2dp" />
+</LinearLayout>
