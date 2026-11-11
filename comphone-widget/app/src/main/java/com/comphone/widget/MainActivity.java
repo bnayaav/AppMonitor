@@ -107,6 +107,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (getIntent() != null && getIntent().getBooleanExtra("newList", false)) {
+            getIntent().removeExtra("newList");
+            if (!Api.prefs(this).getString("emp", "").isEmpty()) newListDialog();
+        }
         if (!Api.prefs(this).getString("emp", "").isEmpty() && root.getChildCount() > 0 && listBox != null) loadList();
     }
 
@@ -210,6 +214,26 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    void newListDialog() {
+        final SharedPreferences p = Api.prefs(this);
+        final EditText in = new EditText(MainActivity.this);
+        in.setHint("למשל: ספק אמטל");
+        new AlertDialog.Builder(MainActivity.this).setTitle("לשונית חדשה").setView(in).setPositiveButton("יצירה", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface d, int w) {
+                String n = in.getText().toString().trim();
+                if (n.isEmpty()) return;
+                p.edit().putString("alist", "L:" + n).putString("list", "L:" + n).apply();
+                listCall("&action=add&name=" + Api.enc(n));
+            }
+        }).setNegativeButton("ביטול", null).show();
+    }
+
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+    }
+
     void renderTabs(JSONObject j) {
         tabs.removeAllViews();
         tabRow = null;
@@ -226,18 +250,7 @@ public class MainActivity extends Activity {
             });
         }
         chip("+ רשימה", false).setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                final EditText in = new EditText(MainActivity.this);
-                in.setHint("למשל: ספק אמטל");
-                new AlertDialog.Builder(MainActivity.this).setTitle("רשימה חדשה").setView(in).setPositiveButton("יצירה", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface d, int w) {
-                        String n = in.getText().toString().trim();
-                        if (n.isEmpty()) return;
-                        p.edit().putString("alist", "L:" + n).apply();
-                        listCall("&action=add&name=" + Api.enc(n));
-                    }
-                }).setNegativeButton("ביטול", null).show();
-            }
+            public void onClick(View v) { newListDialog(); }
         });
     }
 

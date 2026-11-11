@@ -144,7 +144,8 @@ public class OrdersWidget extends AppWidgetProvider {
         Intent r = new Intent(ctx, OrdersWidget.class);
         r.setAction(REFRESH);
         v.setOnClickPendingIntent(R.id.refresh, PendingIntent.getBroadcast(ctx, 1, r, imm));
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app"));
+        Intent open = new Intent(ctx, MainActivity.class);
+        open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         v.setOnClickPendingIntent(R.id.title, PendingIntent.getActivity(ctx, 2, open, imm));
         Intent add = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app#add"));
         v.setOnClickPendingIntent(R.id.add, PendingIntent.getActivity(ctx, 3, add, imm));
@@ -168,7 +169,18 @@ public class OrdersWidget extends AppWidgetProvider {
                 tb.setOnClickPendingIntent(R.id.tab, PendingIntent.getBroadcast(ctx, 100 + i, sel, imm));
                 row.addView(R.id.row, tb);
             }
-            if (row != null) { int rem = ls.length() % 3; if (rem != 0) for (int k = rem; k < 3; k++) row.addView(R.id.row, new RemoteViews(ctx.getPackageName(), R.layout.tab_fill)); v.addView(R.id.tabs, row); }
+            if (ls.length() > 0) {
+                if (ls.length() % 3 == 0) { v.addView(R.id.tabs, row); row = new RemoteViews(ctx.getPackageName(), R.layout.tabrow); }
+                RemoteViews nt = new RemoteViews(ctx.getPackageName(), R.layout.tab_off_v);
+                nt.setTextViewText(R.id.tab, "＋ רשימה");
+                Intent nl = new Intent(ctx, MainActivity.class);
+                nl.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                nl.putExtra("newList", true);
+                nt.setOnClickPendingIntent(R.id.tab, PendingIntent.getActivity(ctx, 99, nl, imm));
+                row.addView(R.id.row, nt);
+            }
+            int total = ls.length() + (ls.length() > 0 ? 1 : 0);
+            if (row != null) { int rem = total % 3; if (rem != 0) for (int k = rem; k < 3; k++) row.addView(R.id.row, new RemoteViews(ctx.getPackageName(), R.layout.tab_fill)); v.addView(R.id.tabs, row); }
         } catch (Exception ignored) {}
         Intent done = new Intent(ctx, OrdersWidget.class);
         done.setAction(DONE);
