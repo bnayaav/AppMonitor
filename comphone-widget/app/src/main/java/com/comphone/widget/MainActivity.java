@@ -13,7 +13,6 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.HorizontalScrollView;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.drawable.GradientDrawable;
@@ -118,16 +117,13 @@ public class MainActivity extends Activity {
         root.removeAllViews();
         SharedPreferences p = Api.prefs(this);
         text("שלום " + p.getString("name", ""), 24, true);
-        HorizontalScrollView hs = new HorizontalScrollView(this);
-        hs.setHorizontalScrollBarEnabled(false);
         tabs = new LinearLayout(this);
-        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.setOrientation(LinearLayout.VERTICAL);
         tabs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        hs.addView(tabs);
-        hs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.addView(hs);
+        root.addView(tabs);
         listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
+        listBox.setPadding(28, 20, 28, 28);
         root.addView(listBox);
         loadList();
         LinearLayout row = new LinearLayout(this);
@@ -170,20 +166,37 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    static final String[] TABC = {"#DBEAFE", "#FEF3C7", "#DCFCE7", "#FCE7F3", "#EDE9FE", "#FFEDD5", "#CFFAFE", "#E5E7EB"};
+    LinearLayout tabRow;
+    int tabN = 0;
+    String selColor = "#FFFFFF";
+
     TextView chip(String label, boolean on) {
+        if (tabRow == null || tabRow.getChildCount() >= 3) {
+            tabRow = new LinearLayout(this);
+            tabRow.setOrientation(LinearLayout.HORIZONTAL);
+            tabRow.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            tabs.addView(tabRow);
+        }
+        String col = TABC[tabN++ % TABC.length];
         TextView c = new TextView(this);
         c.setText(label);
-        c.setTextSize(14);
-        c.setPadding(32, 14, 32, 14);
+        c.setTextSize(15);
+        c.setGravity(Gravity.CENTER);
+        c.setMaxLines(1);
+        c.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        c.setPadding(10, on ? 30 : 22, 10, on ? 30 : 22);
         GradientDrawable g = new GradientDrawable();
-        g.setCornerRadius(60);
-        g.setColor(Color.parseColor(on ? "#111827" : "#FFFFFF"));
-        g.setStroke(2, Color.parseColor(on ? "#111827" : "#D1D5DB"));
+        g.setCornerRadii(new float[]{28, 28, 28, 28, 0, 0, 0, 0});
+        g.setColor(Color.parseColor(col));
+        g.setStroke(on ? 5 : 2, Color.parseColor(on ? "#0F62FE" : "#9CA3AF"));
         c.setBackground(g);
-        c.setTextColor(Color.parseColor(on ? "#FFFFFF" : "#111827"));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(8, 8, 8, 8);
-        tabs.addView(c, lp);
+        c.setTextColor(Color.parseColor("#111827"));
+        if (on) { c.setTypeface(null, android.graphics.Typeface.BOLD); selColor = col; }
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(4, on ? 0 : 10, 4, 0);
+        lp.gravity = Gravity.BOTTOM;
+        tabRow.addView(c, lp);
         return c;
     }
 
@@ -199,6 +212,9 @@ public class MainActivity extends Activity {
 
     void renderTabs(JSONObject j) {
         tabs.removeAllViews();
+        tabRow = null;
+        tabN = 0;
+        selColor = "#FFFFFF";
         final SharedPreferences p = Api.prefs(this);
         String cur = j.optString("cur", "all");
         JSONArray ls = j.optJSONArray("lists");
@@ -228,6 +244,12 @@ public class MainActivity extends Activity {
     void renderList(JSONObject j) {
         listBox.removeAllViews();
         renderTabs(j);
+        if (tabRow != null) while (tabRow.getChildCount() < 3) { View sp = new View(this); tabRow.addView(sp, new LinearLayout.LayoutParams(0, 1, 1f)); }
+        GradientDrawable pg = new GradientDrawable();
+        pg.setColor(Color.parseColor(selColor));
+        pg.setStroke(5, Color.parseColor("#0F62FE"));
+        pg.setCornerRadii(new float[]{0, 0, 0, 0, 24, 24, 24, 24});
+        listBox.setBackground(pg);
         final String cur = j.optString("cur", "all");
         if (cur.startsWith("L:")) {
             final String ln = cur.substring(2);
