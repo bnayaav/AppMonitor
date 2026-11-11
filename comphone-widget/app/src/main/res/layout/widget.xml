@@ -3,17 +3,15 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="@drawable/bg" android:padding="10dp" android:layoutDirection="rtl">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-        <TextView android:id="@+id/prev" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="‹" android:textSize="24sp" android:textColor="#0F62FE" android:paddingStart="2dp" android:paddingEnd="8dp" />
         <TextView android:id="@+id/title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
             android:text="הזמנות קומפון" android:textColor="#0F62FE" android:textSize="16sp" android:textStyle="bold" android:textDirection="rtl" android:maxLines="1" android:ellipsize="end" />
-        <TextView android:id="@+id/next" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="›" android:textSize="24sp" android:textColor="#0F62FE" android:paddingStart="8dp" android:paddingEnd="4dp" />
         <TextView android:id="@+id/refresh" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="⟳" android:textSize="20sp" android:textColor="#6B7280" android:paddingStart="12dp" android:paddingEnd="6dp" />
         <TextView android:id="@+id/add" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="＋" android:textSize="22sp" android:textColor="#0F62FE" android:paddingStart="6dp" android:paddingEnd="2dp" />
     </LinearLayout>
+    <LinearLayout android:id="@+id/tabs" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="4dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="2dp" android:background="#0F62FE" />
     <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="4dp">
         <ListView android:id="@+id/list" android:layout_width="match_parent" android:layout_height="match_parent" android:divider="@null" />
         <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="match_parent"

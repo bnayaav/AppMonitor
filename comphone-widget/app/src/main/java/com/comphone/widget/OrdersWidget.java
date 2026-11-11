@@ -17,6 +17,7 @@ public class OrdersWidget extends AppWidgetProvider {
     public static final String REFRESH = "com.comphone.widget.REFRESH";
     public static final String DONE = "com.comphone.widget.DONE";
     public static final String NAV = "com.comphone.widget.NAV";
+    public static final String SEL = "com.comphone.widget.SEL";
 
     public static void refreshAll(Context ctx) {
         Intent i = new Intent(ctx, OrdersWidget.class);
@@ -34,6 +35,12 @@ public class OrdersWidget extends AppWidgetProvider {
         String a = intent.getAction();
         if (REFRESH.equals(a)) {
             onUpdate(ctx, AppWidgetManager.getInstance(ctx), ids(ctx));
+        } else if (SEL.equals(a)) {
+            Api.prefs(ctx).edit().putString("list", intent.getStringExtra("k")).putString("items", "[]").apply();
+            AppWidgetManager m0 = AppWidgetManager.getInstance(ctx);
+            for (int id : ids(ctx)) m0.updateAppWidget(id, views(ctx, id, Api.prefs(ctx).getString("title", ""), "טוען…"));
+            m0.notifyAppWidgetViewDataChanged(ids(ctx), R.id.list);
+            onUpdate(ctx, m0, ids(ctx));
         } else if (NAV.equals(a)) {
             SharedPreferences p = Api.prefs(ctx);
             try {
@@ -141,14 +148,28 @@ public class OrdersWidget extends AppWidgetProvider {
         v.setOnClickPendingIntent(R.id.title, PendingIntent.getActivity(ctx, 2, open, imm));
         Intent add = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app#add"));
         v.setOnClickPendingIntent(R.id.add, PendingIntent.getActivity(ctx, 3, add, imm));
-        Intent nv = new Intent(ctx, OrdersWidget.class);
-        nv.setAction(NAV);
-        nv.putExtra("dir", 1);
-        v.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(ctx, 5, nv, imm));
-        Intent pv = new Intent(ctx, OrdersWidget.class);
-        pv.setAction(NAV);
-        pv.putExtra("dir", -1);
-        v.setOnClickPendingIntent(R.id.prev, PendingIntent.getBroadcast(ctx, 6, pv, imm));
+        try {
+            SharedPreferences p = Api.prefs(ctx);
+            JSONArray ls = new JSONArray(p.getString("lists", "[]"));
+            String cur = p.getString("list", "all");
+            v.removeAllViews(R.id.tabs);
+            RemoteViews row = null;
+            for (int i = 0; i < ls.length(); i++) {
+                JSONObject l = ls.getJSONObject(i);
+                if (row == null || i % 3 == 0) { if (row != null) v.addView(R.id.tabs, row); row = new RemoteViews(ctx.getPackageName(), R.layout.tabrow); }
+                boolean on = cur.equals(l.optString("k"));
+                RemoteViews tb = new RemoteViews(ctx.getPackageName(), on ? R.layout.tab_on_v : R.layout.tab_off_v);
+                String nm = l.optString("name").replaceAll("^[^\p{L}]+", "");
+                tb.setTextViewText(R.id.tab, nm + (l.optInt("n") > 0 ? " " + l.optInt("n") : ""));
+                Intent sel = new Intent(ctx, OrdersWidget.class);
+                sel.setAction(SEL);
+                sel.putExtra("k", l.optString("k"));
+                sel.putExtra("name", l.optString("name"));
+                tb.setOnClickPendingIntent(R.id.tab, PendingIntent.getBroadcast(ctx, 100 + i, sel, imm));
+                row.addView(R.id.row, tb);
+            }
+            if (row != null) { int rem = ls.length() % 3; if (rem != 0) for (int k = rem; k < 3; k++) row.addView(R.id.row, new RemoteViews(ctx.getPackageName(), R.layout.tab_fill)); v.addView(R.id.tabs, row); }
+        } catch (Exception ignored) {}
         Intent done = new Intent(ctx, OrdersWidget.class);
         done.setAction(DONE);
         v.setPendingIntentTemplate(R.id.list, PendingIntent.getBroadcast(ctx, 4, done, mut));
