@@ -13,6 +13,10 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.graphics.drawable.GradientDrawable;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -107,12 +111,21 @@ public class MainActivity extends Activity {
         if (!Api.prefs(this).getString("emp", "").isEmpty() && root.getChildCount() > 0 && listBox != null) loadList();
     }
 
-    LinearLayout listBox;
+    LinearLayout listBox, tabs;
+    Button delBtn;
 
     void showHome() {
         root.removeAllViews();
         SharedPreferences p = Api.prefs(this);
         text("שלום " + p.getString("name", ""), 24, true);
+        HorizontalScrollView hs = new HorizontalScrollView(this);
+        hs.setHorizontalScrollBarEnabled(false);
+        tabs = new LinearLayout(this);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        hs.addView(tabs);
+        hs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        root.addView(hs);
         listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
         root.addView(listBox);
@@ -148,7 +161,7 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    final JSONObject j = new JSONObject(Api.get("/app/api/widget?code=" + Api.enc(p.getString("code", "")) + "&e=" + Api.enc(p.getString("emp", ""))));
+                    final JSONObject j = new JSONObject(Api.get("/app/api/widget?code=" + Api.enc(p.getString("code", "")) + "&e=" + Api.enc(p.getString("emp", "")) + "&l=" + Api.enc(p.getString("alist", "all"))));
                     runOnUiThread(new Runnable() { public void run() { renderList(j); } });
                 } catch (final Exception e) {
                     runOnUiThread(new Runnable() { public void run() { listBox.removeAllViews(); TextView x = new TextView(MainActivity.this); x.setText("שגיאה: " + e.getMessage()); listBox.addView(x); } });
@@ -157,8 +170,98 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    TextView chip(String label, boolean on) {
+        TextView c = new TextView(this);
+        c.setText(label);
+        c.setTextSize(14);
+        c.setPadding(32, 14, 32, 14);
+        GradientDrawable g = new GradientDrawable();
+        g.setCornerRadius(60);
+        g.setColor(Color.parseColor(on ? "#111827" : "#FFFFFF"));
+        g.setStroke(2, Color.parseColor(on ? "#111827" : "#D1D5DB"));
+        c.setBackground(g);
+        c.setTextColor(Color.parseColor(on ? "#FFFFFF" : "#111827"));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(8, 8, 8, 8);
+        tabs.addView(c, lp);
+        return c;
+    }
+
+    void listCall(final String q) {
+        final SharedPreferences p = Api.prefs(this);
+        new Thread(new Runnable() {
+            public void run() {
+                try { Api.get("/app/api/lists?code=" + Api.enc(p.getString("code", "")) + "&e=" + Api.enc(p.getString("emp", "")) + q); } catch (Exception ignored) {}
+                runOnUiThread(new Runnable() { public void run() { loadList(); OrdersWidget.refreshAll(MainActivity.this); } });
+            }
+        }).start();
+    }
+
+    void renderTabs(JSONObject j) {
+        tabs.removeAllViews();
+        final SharedPreferences p = Api.prefs(this);
+        String cur = j.optString("cur", "all");
+        JSONArray ls = j.optJSONArray("lists");
+        if (ls != null) for (int i = 0; i < ls.length(); i++) {
+            final JSONObject l = ls.optJSONObject(i);
+            String nm = l.optString("name").replaceAll("^[^\\p{L}]+", "");
+            chip(nm + (l.optInt("n") > 0 ? " " + l.optInt("n") : ""), cur.equals(l.optString("k"))).setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) { p.edit().putString("alist", l.optString("k")).apply(); loadList(); }
+            });
+        }
+        chip("+ רשימה", false).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                final EditText in = new EditText(MainActivity.this);
+                in.setHint("למשל: ספק אמטל");
+                new AlertDialog.Builder(MainActivity.this).setTitle("רשימה חדשה").setView(in).setPositiveButton("יצירה", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface d, int w) {
+                        String n = in.getText().toString().trim();
+                        if (n.isEmpty()) return;
+                        p.edit().putString("alist", "L:" + n).apply();
+                        listCall("&action=add&name=" + Api.enc(n));
+                    }
+                }).setNegativeButton("ביטול", null).show();
+            }
+        });
+    }
+
     void renderList(JSONObject j) {
         listBox.removeAllViews();
+        renderTabs(j);
+        final String cur = j.optString("cur", "all");
+        if (cur.startsWith("L:")) {
+            final String ln = cur.substring(2);
+            LinearLayout add = new LinearLayout(this);
+            add.setOrientation(LinearLayout.HORIZONTAL);
+            final EditText in = new EditText(this);
+            in.setHint("פריט חדש…");
+            in.setSingleLine(true);
+            Button ok = new Button(this);
+            ok.setText("הוסף");
+            ok.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    String tx = in.getText().toString().trim();
+                    if (tx.isEmpty()) return;
+                    in.setText("");
+                    listCall("&action=item&name=" + Api.enc(ln) + "&title=" + Api.enc(tx));
+                }
+            });
+            add.addView(in, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            add.addView(ok);
+            listBox.addView(add);
+            Button del = new Button(this);
+            del.setText("מחיקת הרשימה");
+            del.setAllCaps(false);
+            del.setTextColor(Color.parseColor("#DC2626"));
+            del.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    new AlertDialog.Builder(MainActivity.this).setTitle("למחוק את \"" + ln + "\" וכל הפריטים?").setPositiveButton("מחיקה", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int w) { Api.prefs(MainActivity.this).edit().putString("alist", "all").apply(); listCall("&action=del&name=" + Api.enc(ln)); }
+                    }).setNegativeButton("ביטול", null).show();
+                }
+            });
+            delBtn = del;
+        } else delBtn = null;
         TextView h = new TextView(this);
         h.setText(j.optString("title"));
         h.setTextSize(16);
@@ -168,10 +271,11 @@ public class MainActivity extends Activity {
         JSONArray items = j.optJSONArray("items");
         if (items == null || items.length() == 0) {
             TextView e = new TextView(this);
-            e.setText("אין כלום לטיפול 🎉");
+            e.setText(cur.equals("all") ? "אין כלום לטיפול 🎉" : "הרשימה ריקה ✓");
             e.setTextSize(16);
             e.setPadding(0, 24, 0, 24);
             listBox.addView(e);
+            if (delBtn != null) listBox.addView(delBtn);
             return;
         }
         for (int i = 0; i < items.length(); i++) {
@@ -226,5 +330,6 @@ public class MainActivity extends Activity {
             });
             listBox.addView(r);
         }
+        if (delBtn != null) listBox.addView(delBtn);
     }
 }
