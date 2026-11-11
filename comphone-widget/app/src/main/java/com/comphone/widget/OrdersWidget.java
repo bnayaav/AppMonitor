@@ -159,7 +159,7 @@ public class OrdersWidget extends AppWidgetProvider {
                 if (row == null || i % 3 == 0) { if (row != null) v.addView(R.id.tabs, row); row = new RemoteViews(ctx.getPackageName(), R.layout.tabrow); }
                 boolean on = cur.equals(l.optString("k"));
                 RemoteViews tb = new RemoteViews(ctx.getPackageName(), on ? R.layout.tab_on_v : R.layout.tab_off_v);
-                String nm = l.optString("name").replaceAll("^[^\p{L}]+", "");
+                String nm = l.optString("name").replaceAll("^[^\\p{L}]+", "");
                 tb.setTextViewText(R.id.tab, nm + (l.optInt("n") > 0 ? " " + l.optInt("n") : ""));
                 Intent sel = new Intent(ctx, OrdersWidget.class);
                 sel.setAction(SEL);
