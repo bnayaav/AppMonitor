@@ -249,7 +249,7 @@ public class MainActivity extends Activity {
                 public void onClick(View v) { p.edit().putString("alist", l.optString("k")).apply(); loadList(); }
             });
         }
-        chip("+ רשימה", false).setOnClickListener(new View.OnClickListener() {
+        chip("＋", false).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) { newListDialog(); }
         });
     }

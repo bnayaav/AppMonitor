@@ -170,17 +170,14 @@ public class OrdersWidget extends AppWidgetProvider {
                 row.addView(R.id.row, tb);
             }
             if (ls.length() > 0) {
-                if (ls.length() % 3 == 0) { v.addView(R.id.tabs, row); row = new RemoteViews(ctx.getPackageName(), R.layout.tabrow); }
-                RemoteViews nt = new RemoteViews(ctx.getPackageName(), R.layout.tab_off_v);
-                nt.setTextViewText(R.id.tab, "＋ רשימה");
+                RemoteViews nt = new RemoteViews(ctx.getPackageName(), R.layout.tab_plus_v);
                 Intent nl = new Intent(ctx, MainActivity.class);
                 nl.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 nl.putExtra("newList", true);
                 nt.setOnClickPendingIntent(R.id.tab, PendingIntent.getActivity(ctx, 99, nl, imm));
                 row.addView(R.id.row, nt);
             }
-            int total = ls.length() + (ls.length() > 0 ? 1 : 0);
-            if (row != null) { int rem = total % 3; if (rem != 0) for (int k = rem; k < 3; k++) row.addView(R.id.row, new RemoteViews(ctx.getPackageName(), R.layout.tab_fill)); v.addView(R.id.tabs, row); }
+            if (row != null) { int rem = ls.length() % 3; if (rem != 0) for (int k = rem; k < 3; k++) row.addView(R.id.row, new RemoteViews(ctx.getPackageName(), R.layout.tab_fill)); v.addView(R.id.tabs, row); }
         } catch (Exception ignored) {}
         Intent done = new Intent(ctx, OrdersWidget.class);
         done.setAction(DONE);
