@@ -16,6 +16,7 @@ import org.json.JSONObject;
 public class OrdersWidget extends AppWidgetProvider {
     public static final String REFRESH = "com.comphone.widget.REFRESH";
     public static final String DONE = "com.comphone.widget.DONE";
+    public static final String NAV = "com.comphone.widget.NAV";
 
     public static void refreshAll(Context ctx) {
         Intent i = new Intent(ctx, OrdersWidget.class);
@@ -32,6 +33,23 @@ public class OrdersWidget extends AppWidgetProvider {
         super.onReceive(ctx, intent);
         String a = intent.getAction();
         if (REFRESH.equals(a)) {
+            onUpdate(ctx, AppWidgetManager.getInstance(ctx), ids(ctx));
+        } else if (NAV.equals(a)) {
+            SharedPreferences p = Api.prefs(ctx);
+            try {
+                JSONArray ls = new JSONArray(p.getString("lists", "[]"));
+                if (ls.length() > 0) {
+                    String cur = p.getString("list", "all");
+                    int idx = 0;
+                    for (int i = 0; i < ls.length(); i++) if (cur.equals(ls.getJSONObject(i).optString("k"))) idx = i;
+                    idx = (idx + intent.getIntExtra("dir", 1) + ls.length()) % ls.length();
+                    JSONObject nx = ls.getJSONObject(idx);
+                    p.edit().putString("list", nx.optString("k")).putString("title", nx.optString("name")).putString("items", "[]").apply();
+                    AppWidgetManager m0 = AppWidgetManager.getInstance(ctx);
+                    for (int id : ids(ctx)) m0.updateAppWidget(id, views(ctx, id, nx.optString("name") + " …", "טוען…"));
+                    m0.notifyAppWidgetViewDataChanged(ids(ctx), R.id.list);
+                }
+            } catch (Exception ignored) {}
             onUpdate(ctx, AppWidgetManager.getInstance(ctx), ids(ctx));
         } else if (DONE.equals(a)) {
             if (intent.getIntExtra("open", 0) == 1) {
@@ -91,9 +109,12 @@ public class OrdersWidget extends AppWidgetProvider {
             p.edit().putString("items", "[]").apply();
         } else {
             try {
-                JSONObject j = new JSONObject(Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp)));
+                JSONObject j = new JSONObject(Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))));
                 title = j.optString("title", title);
-                p.edit().putString("items", j.optJSONArray("items") == null ? "[]" : j.getJSONArray("items").toString()).putString("title", title).apply();
+                SharedPreferences.Editor ed = p.edit().putString("items", j.optJSONArray("items") == null ? "[]" : j.getJSONArray("items").toString()).putString("title", title);
+                if (j.optJSONArray("lists") != null) ed.putString("lists", j.getJSONArray("lists").toString());
+                ed.putString("list", j.optString("cur", "all")).apply();
+                if (j.optJSONArray("items") != null && j.getJSONArray("items").length() == 0) empty = "הרשימה ריקה ✓";
             } catch (Exception e) {
                 empty = "לא מעודכן: " + e.getMessage();
             }
@@ -120,6 +141,14 @@ public class OrdersWidget extends AppWidgetProvider {
         v.setOnClickPendingIntent(R.id.title, PendingIntent.getActivity(ctx, 2, open, imm));
         Intent add = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app#add"));
         v.setOnClickPendingIntent(R.id.add, PendingIntent.getActivity(ctx, 3, add, imm));
+        Intent nv = new Intent(ctx, OrdersWidget.class);
+        nv.setAction(NAV);
+        nv.putExtra("dir", 1);
+        v.setOnClickPendingIntent(R.id.next, PendingIntent.getBroadcast(ctx, 5, nv, imm));
+        Intent pv = new Intent(ctx, OrdersWidget.class);
+        pv.setAction(NAV);
+        pv.putExtra("dir", -1);
+        v.setOnClickPendingIntent(R.id.prev, PendingIntent.getBroadcast(ctx, 6, pv, imm));
         Intent done = new Intent(ctx, OrdersWidget.class);
         done.setAction(DONE);
         v.setPendingIntentTemplate(R.id.list, PendingIntent.getBroadcast(ctx, 4, done, mut));
