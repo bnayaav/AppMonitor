@@ -121,6 +121,13 @@ public class MainActivity extends Activity {
         root.removeAllViews();
         SharedPreferences p = Api.prefs(this);
         text("שלום " + p.getString("name", ""), 24, true);
+        android.widget.ImageView logo = new android.widget.ImageView(this);
+        logo.setImageResource(R.drawable.comphone_logo);
+        logo.setAdjustViewBounds(true);
+        LinearLayout.LayoutParams lgp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, (int) (34 * getResources().getDisplayMetrics().density));
+        lgp.gravity = Gravity.CENTER_HORIZONTAL;
+        lgp.setMargins(0, 4, 0, 16);
+        root.addView(logo, 0, lgp);
         tabs = new LinearLayout(this);
         tabs.setOrientation(LinearLayout.VERTICAL);
         tabs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
