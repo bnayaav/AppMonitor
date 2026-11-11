@@ -282,12 +282,19 @@ public class MainActivity extends Activity {
             final JSONObject it = items.optJSONObject(i);
             if (it == null) continue;
             if ("header".equals(it.optString("type"))) {
+                if (listBox.getChildCount() > 1) {
+                    View line = new View(this);
+                    line.setBackgroundColor(Color.parseColor("#0F62FE"));
+                    LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 6);
+                    llp.setMargins(0, 36, 0, 0);
+                    listBox.addView(line, llp);
+                }
                 TextView hd = new TextView(this);
                 hd.setText(it.optString("text"));
-                hd.setTextSize(15);
+                hd.setTextSize(17);
                 hd.setTypeface(null, android.graphics.Typeface.BOLD);
-                hd.setTextColor(Color.parseColor("#374151"));
-                hd.setPadding(0, 28, 0, 8);
+                hd.setTextColor(Color.parseColor("#0F62FE"));
+                hd.setPadding(0, 16, 0, 8);
                 listBox.addView(hd);
                 continue;
             }
