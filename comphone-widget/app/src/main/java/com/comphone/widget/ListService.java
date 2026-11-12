@@ -34,12 +34,15 @@ public class ListService extends RemoteViewsService {
             RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.row);
             v.setTextViewText(R.id.text, it.optString("text"));
             v.setTextViewText(R.id.sub, it.optString("sub"));
-            v.setTextViewText(R.id.check, it.optBoolean("pending") ? "◉" : "◯");
+            boolean info = !it.optString("icon").isEmpty();
+            v.setTextViewText(R.id.check, info ? it.optString("icon") : it.optBoolean("pending") ? "◉" : "◯");
             Intent fill = new Intent();
             fill.putExtra("type", it.optString("type"));
             fill.putExtra("id", it.optInt("id"));
             fill.putExtra("next", it.optString("next"));
-            v.setOnClickFillInIntent(R.id.check, fill);
+            Intent open0 = new Intent();
+            open0.putExtra("open", 1);
+            v.setOnClickFillInIntent(R.id.check, info ? open0 : fill);
             Intent open = new Intent();
             open.putExtra("open", 1);
             v.setOnClickFillInIntent(R.id.text, open);

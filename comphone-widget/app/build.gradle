@@ -6,8 +6,8 @@ android {
         applicationId 'com.comphone.widget'
         minSdk 24
         targetSdk 34
-        versionCode 12
-        versionName '2.1'
+        versionCode 13
+        versionName '2.2'
     }
     signingConfigs {
         fixed { storeFile file('comphone.jks'); storePassword 'comphone123'; keyAlias 'comphone'; keyPassword 'comphone123' }

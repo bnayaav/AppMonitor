@@ -345,8 +345,9 @@ public class MainActivity extends Activity {
             r.setGravity(Gravity.CENTER_VERTICAL);
             r.setPadding(0, 10, 0, 10);
             final TextView chk = new TextView(this);
-            chk.setText("◯");
-            chk.setTextSize(26);
+            final boolean info = !it.optString("icon").isEmpty();
+            chk.setText(info ? it.optString("icon") : "◯");
+            chk.setTextSize(info ? 20 : 26);
             chk.setTextColor(Color.parseColor("#0F62FE"));
             chk.setPadding(8, 0, 24, 0);
             LinearLayout col = new LinearLayout(this);
@@ -363,7 +364,7 @@ public class MainActivity extends Activity {
             if (!it.optString("sub").isEmpty()) col.addView(b);
             r.addView(chk);
             r.addView(col, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-            chk.setOnClickListener(new View.OnClickListener() {
+            if (!info) chk.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     chk.setText("◉");
                     final SharedPreferences p = Api.prefs(MainActivity.this);
