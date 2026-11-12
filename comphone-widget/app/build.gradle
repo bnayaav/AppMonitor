@@ -6,7 +6,7 @@ android {
         applicationId 'com.comphone.widget'
         minSdk 24
         targetSdk 34
-        versionCode 14
+        versionCode((project.findProperty('vc') ?: '16') as Integer)
         versionName '2.3'
     }
     signingConfigs {

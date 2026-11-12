@@ -128,6 +128,33 @@ public class MainActivity extends Activity {
         lgp.gravity = Gravity.CENTER_HORIZONTAL;
         lgp.setMargins(0, 4, 0, 16);
         root.addView(logo, 0, lgp);
+        final TextView upd = new TextView(this);
+        upd.setText("⬇️ יש גרסה חדשה – לחצו לעדכון");
+        upd.setTextColor(Color.WHITE);
+        upd.setTextSize(15);
+        upd.setGravity(Gravity.CENTER);
+        upd.setPadding(24, 18, 24, 18);
+        GradientDrawable ug = new GradientDrawable();
+        ug.setCornerRadius(40);
+        ug.setColor(Color.parseColor("#16A34A"));
+        upd.setBackground(ug);
+        upd.setVisibility(View.GONE);
+        LinearLayout.LayoutParams ulp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        ulp.setMargins(0, 0, 0, 16);
+        root.addView(upd, 1, ulp);
+        upd.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Api.BASE + "/app/apk"))); }
+        });
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    JSONObject j = new JSONObject(Api.get("/app/apkver"));
+                    int latest = j.optInt("v", 0);
+                    int mine = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+                    if (latest > mine) runOnUiThread(new Runnable() { public void run() { upd.setVisibility(View.VISIBLE); } });
+                } catch (Exception ignored) {}
+            }
+        }).start();
         tabs = new LinearLayout(this);
         tabs.setOrientation(LinearLayout.VERTICAL);
         tabs.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
