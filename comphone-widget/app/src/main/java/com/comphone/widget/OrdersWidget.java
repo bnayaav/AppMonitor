@@ -116,14 +116,18 @@ public class OrdersWidget extends AppWidgetProvider {
             p.edit().putString("items", "[]").apply();
         } else {
             try {
-                JSONObject j = new JSONObject(Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))));
+                String raw;
+                try { raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))); }
+                catch (Exception e1) { try { Thread.sleep(3000); } catch (InterruptedException ie) {} raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))); }
+                JSONObject j = new JSONObject(raw);
                 title = j.optString("title", title);
                 SharedPreferences.Editor ed = p.edit().putString("items", j.optJSONArray("items") == null ? "[]" : j.getJSONArray("items").toString()).putString("title", title);
                 if (j.optJSONArray("lists") != null) ed.putString("lists", j.getJSONArray("lists").toString());
                 ed.putString("list", j.optString("cur", "all")).apply();
                 if (j.optJSONArray("items") != null && j.getJSONArray("items").length() == 0) empty = "הרשימה ריקה ✓";
             } catch (Exception e) {
-                empty = "לא מעודכן: " + e.getMessage();
+                title = p.getString("title", title).replace(" · ⚠️ אין חיבור", "") + " · ⚠️ אין חיבור";
+                empty = "אין חיבור לשרת – לחצו ⟳ לנסות שוב";
             }
         }
         for (int id : ids) mgr.updateAppWidget(id, views(ctx, id, title, empty));
