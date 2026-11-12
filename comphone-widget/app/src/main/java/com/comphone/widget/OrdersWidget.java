@@ -59,6 +59,12 @@ public class OrdersWidget extends AppWidgetProvider {
             } catch (Exception ignored) {}
             onUpdate(ctx, AppWidgetManager.getInstance(ctx), ids(ctx));
         } else if (DONE.equals(a)) {
+            if (intent.getStringExtra("url") != null) {
+                Intent o = new Intent(Intent.ACTION_VIEW, Uri.parse(intent.getStringExtra("url")));
+                o.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                ctx.startActivity(o);
+                return;
+            }
             if (intent.getIntExtra("open", 0) == 1) {
                 Intent o = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app"));
                 o.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -106,6 +112,8 @@ public class OrdersWidget extends AppWidgetProvider {
         }).start();
     }
 
+    static int ver(Context ctx) { try { return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionCode; } catch (Exception e) { return 0; } }
+
     static void load(Context ctx, AppWidgetManager mgr, int[] ids) {
         SharedPreferences p = Api.prefs(ctx);
         String code = p.getString("code", ""), emp = p.getString("emp", "");
@@ -117,8 +125,8 @@ public class OrdersWidget extends AppWidgetProvider {
         } else {
             try {
                 String raw;
-                try { raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))); }
-                catch (Exception e1) { try { Thread.sleep(3000); } catch (InterruptedException ie) {} raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all"))); }
+                try { raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all")) + "&v=" + ver(ctx)); }
+                catch (Exception e1) { try { Thread.sleep(3000); } catch (InterruptedException ie) {} raw = Api.get("/app/api/widget?code=" + Api.enc(code) + "&e=" + Api.enc(emp) + "&l=" + Api.enc(p.getString("list", "all")) + "&v=" + ver(ctx)); }
                 JSONObject j = new JSONObject(raw);
                 title = j.optString("title", title);
                 SharedPreferences.Editor ed = p.edit().putString("items", j.optJSONArray("items") == null ? "[]" : j.getJSONArray("items").toString()).putString("title", title);

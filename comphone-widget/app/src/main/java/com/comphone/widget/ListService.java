@@ -31,6 +31,14 @@ public class ListService extends RemoteViewsService {
                 h.setTextViewText(R.id.h, it.optString("text"));
                 return h;
             }
+            if ("update".equals(it.optString("type"))) {
+                RemoteViews u = new RemoteViews(ctx.getPackageName(), R.layout.header);
+                u.setTextViewText(R.id.h, it.optString("text"));
+                Intent ui = new Intent();
+                ui.putExtra("url", it.optString("url"));
+                u.setOnClickFillInIntent(R.id.h, ui);
+                return u;
+            }
             RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.row);
             v.setTextViewText(R.id.text, it.optString("text"));
             v.setTextViewText(R.id.sub, it.optString("sub"));
