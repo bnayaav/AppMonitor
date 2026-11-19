@@ -131,6 +131,9 @@ public class OrdersWidget extends AppWidgetProvider {
                 title = j.optString("title", title);
                 SharedPreferences.Editor ed = p.edit().putString("items", j.optJSONArray("items") == null ? "[]" : j.getJSONArray("items").toString()).putString("title", title);
                 if (j.optJSONArray("lists") != null) ed.putString("lists", j.getJSONArray("lists").toString());
+                JSONObject pin = j.optJSONObject("pinned");
+                if (pin != null) ed.putString("pitems", pin.optJSONArray("items") == null ? "[]" : pin.getJSONArray("items").toString()).putString("ptitle", pin.optString("title", "📦 מלאי")).putBoolean("pin", true);
+                else ed.putBoolean("pin", false).putString("pitems", "[]");
                 ed.putString("list", j.optString("cur", "all")).apply();
                 if (j.optJSONArray("items") != null && j.getJSONArray("items").length() == 0) empty = "הרשימה ריקה ✓";
             } catch (Exception e) {
@@ -140,6 +143,7 @@ public class OrdersWidget extends AppWidgetProvider {
         }
         for (int id : ids) mgr.updateAppWidget(id, views(ctx, id, title, empty));
         mgr.notifyAppWidgetViewDataChanged(ids, R.id.list);
+        mgr.notifyAppWidgetViewDataChanged(ids, R.id.pinlist);
     }
 
     static RemoteViews views(Context ctx, int wid, String title, String empty) {
@@ -151,6 +155,17 @@ public class OrdersWidget extends AppWidgetProvider {
         svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
         v.setRemoteAdapter(R.id.list, svc);
         v.setEmptyView(R.id.list, R.id.empty);
+        SharedPreferences pp = Api.prefs(ctx);
+        if (pp.getBoolean("pin", false)) {
+            v.setViewVisibility(R.id.pinbox, android.view.View.VISIBLE);
+            v.setTextViewText(R.id.pintitle, pp.getString("ptitle", "📦 מלאי"));
+            Intent ps = new Intent(ctx, ListService.class);
+            ps.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, wid);
+            ps.putExtra("src", "pin");
+            ps.setData(Uri.parse(ps.toUri(Intent.URI_INTENT_SCHEME)));
+            v.setRemoteAdapter(R.id.pinlist, ps);
+            v.setEmptyView(R.id.pinlist, R.id.pinempty);
+        } else v.setViewVisibility(R.id.pinbox, android.view.View.GONE);
         int imm = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         int mut = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
         Intent r = new Intent(ctx, OrdersWidget.class);
@@ -194,6 +209,7 @@ public class OrdersWidget extends AppWidgetProvider {
         Intent done = new Intent(ctx, OrdersWidget.class);
         done.setAction(DONE);
         v.setPendingIntentTemplate(R.id.list, PendingIntent.getBroadcast(ctx, 4, done, mut));
+        v.setPendingIntentTemplate(R.id.pinlist, PendingIntent.getBroadcast(ctx, 5, done, mut));
         return v;
     }
 }

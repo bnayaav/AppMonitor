@@ -10,16 +10,17 @@ import org.json.JSONObject;
 public class ListService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new Factory(getApplicationContext());
+        return new Factory(getApplicationContext(), "pin".equals(intent.getStringExtra("src")) ? "pitems" : "items");
     }
 
     static class Factory implements RemoteViewsFactory {
         final Context ctx;
+        final String key;
         JSONArray items = new JSONArray();
-        Factory(Context c) { ctx = c; }
+        Factory(Context c, String k) { ctx = c; key = k; }
         public void onCreate() {}
         public void onDataSetChanged() {
-            try { items = new JSONArray(Api.prefs(ctx).getString("items", "[]")); } catch (Exception e) { items = new JSONArray(); }
+            try { items = new JSONArray(Api.prefs(ctx).getString(key, "[]")); } catch (Exception e) { items = new JSONArray(); }
         }
         public void onDestroy() {}
         public int getCount() { return items.length(); }
