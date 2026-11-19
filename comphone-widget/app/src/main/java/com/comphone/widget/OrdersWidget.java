@@ -35,6 +35,7 @@ public class OrdersWidget extends AppWidgetProvider {
         String a = intent.getAction();
         if (REFRESH.equals(a)) {
             onUpdate(ctx, AppWidgetManager.getInstance(ctx), ids(ctx));
+            StockWidget.refreshAll(ctx);
         } else if (SEL.equals(a)) {
             Api.prefs(ctx).edit().putString("list", intent.getStringExtra("k")).putString("items", "[]").apply();
             AppWidgetManager m0 = AppWidgetManager.getInstance(ctx);
@@ -156,7 +157,7 @@ public class OrdersWidget extends AppWidgetProvider {
         v.setRemoteAdapter(R.id.list, svc);
         v.setEmptyView(R.id.list, R.id.empty);
         SharedPreferences pp = Api.prefs(ctx);
-        if (pp.getBoolean("pin", false)) {
+        if (false && pp.getBoolean("pin", false)) {
             v.setViewVisibility(R.id.pinbox, android.view.View.VISIBLE);
             v.setTextViewText(R.id.pintitle, pp.getString("ptitle", "📦 מלאי"));
             Intent ps = new Intent(ctx, ListService.class);

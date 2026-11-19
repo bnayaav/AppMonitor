@@ -16,6 +16,13 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
         </receiver>
+        <receiver android:name=".StockWidget" android:exported="true" android:label="מלאי מחשבים">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.comphone.widget.STOCK_REFRESH" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/stock_widget_info" />
+        </receiver>
         <service android:name=".ListService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
     </application>
 </manifest>
