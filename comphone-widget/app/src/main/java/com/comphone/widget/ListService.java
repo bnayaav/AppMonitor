@@ -50,10 +50,10 @@ public class ListService extends RemoteViewsService {
             fill.putExtra("id", it.optInt("id"));
             fill.putExtra("next", it.optString("next"));
             Intent open0 = new Intent();
-            open0.putExtra("open", 1);
+            if (!it.optString("url").isEmpty()) open0.putExtra("url", it.optString("url")); else open0.putExtra("open", 1);
             v.setOnClickFillInIntent(R.id.check, info ? open0 : fill);
             Intent open = new Intent();
-            open.putExtra("open", 1);
+            if (!it.optString("url").isEmpty()) open.putExtra("url", it.optString("url")); else open.putExtra("open", 1);
             v.setOnClickFillInIntent(R.id.text, open);
             return v;
         }

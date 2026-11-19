@@ -85,7 +85,7 @@ public class StockWidget extends AppWidgetProvider {
         Intent r = new Intent(ctx, StockWidget.class);
         r.setAction(REFRESH);
         v.setOnClickPendingIntent(R.id.srefresh, PendingIntent.getBroadcast(ctx, 201, r, imm));
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app"));
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(Api.BASE + "/app#stk"));
         v.setOnClickPendingIntent(R.id.stitle, PendingIntent.getActivity(ctx, 202, open, imm));
         Intent tpl = new Intent(ctx, OrdersWidget.class);
         tpl.setAction(OrdersWidget.DONE);
